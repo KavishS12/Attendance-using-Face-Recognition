@@ -3,6 +3,7 @@ import numpy as np
 import face_recognition
 import os
 from datetime import datetime
+import sqlite3
 
 path = "individuals"
 images = []
@@ -25,7 +26,7 @@ def findEncodings(images):
         encodeList.append(encode)
     return encodeList
 
-def markAttendance(name):
+def markAttendance2(name):
     with open("attendance.csv",'r+') as file_handler:
         data = file_handler.readlines()
         nameList = []
@@ -36,6 +37,17 @@ def markAttendance(name):
             t = datetime.now()
             dtString = t.strftime('%H:%M:%S')
             file_handler.writelines(f'\n{name},{dtString}')
+
+conn = sqlite3.connect('students.db')
+c = conn.cursor()
+
+def markAttendance(nm):
+    try:
+        c.execute("UPDATE students SET present = 1 WHERE name = ?", (nm,))
+        conn.commit()
+        print("Attendance marked successfully.")
+    except sqlite3.Error as e:
+        print("Error marking attendance:", e)
 
 encodeListKnown = findEncodings(images)
 print("Encoding done")
@@ -51,7 +63,7 @@ while True:
     encodeCurrFrame = face_recognition.face_encodings(imgSmall)
 
     for encodeFace,faceloc in zip(encodeCurrFrame,facesCurrFrame):
-        matches = face_recognition.compare_faces(encodeListKnown,encodeFace)
+        matches = face_recognition.compare_faces(encodeListKnown,encodeFace,tolerance=0.5)
         face_dist = face_recognition.face_distance(encodeListKnown,encodeFace)
         print(face_dist)
         matchIndex = np.argmin(face_dist) #get the individual with least face distance(if it exists)
@@ -67,12 +79,15 @@ while True:
             cv.rectangle(img,(x1,y2-35),(x2,y2),(0,255,0),cv.FILLED)
             cv.putText(img,name,(x1+6,y2-6),cv.FONT_HERSHEY_SIMPLEX,1,(0,0,0),2)
             markAttendance(name)
+            markAttendance2(name)
 
     cv.imshow('Webcam',img)
     cv.waitKey(1)
 
     if cv.waitKey(1) & 0xFF == ord('q'):
-        break
+        break   
 
 cap.release()
 cv.destroyAllWindows()
+
+conn.close()
