@@ -7,7 +7,10 @@ c = conn.cursor()
 c.execute("""create table students(
           name TEXT,
           regNO INTEGER PRIMARY KEY,
-          present INTEGER
+          date_1 INTEGER DEFAULT 0,
+          date_4 INTEGER DEFAULT 0,
+          date_7 INTEGER DEFAULT 0,
+          date_10 INTEGER DEFAULT 0
 )""")
 
 c.execute("insert into students(name,regNO) values('KAVISH',1234)")
