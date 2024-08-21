@@ -68,7 +68,7 @@ elif selected_page == 'Taking Attendance':
     date = "date_" + date
     c.execute(f"PRAGMA table_info(students);")
     columns = [row[1] for row in c.fetchall()]
-    if date not in columns:
+    if date not in columns and date != "date_":
         try:
             c.execute(f"ALTER TABLE students ADD COLUMN {date} INTEGER DEFAULT 0;")
             conn.commit()
@@ -128,6 +128,8 @@ elif selected_page == 'Displaying Attendance':
     st.write('---')
 
     if st.button("Display Attendance", key="display_button"):
+        st.text("You can download the csv data by clicking the download icon obtained by scrolling")
+        st.text("over the table")
         c.execute('SELECT * FROM students;')
         data = c.fetchall()
         column_names = [description[0] for description in c.description]
