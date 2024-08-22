@@ -40,7 +40,7 @@ def markAttendance(nm, date):
         print("Error marking attendance:", e)
 
 # Load images and encodings once
-path = "individuals"
+path = "Individuals"
 images, classNames = load_images_and_encodings(path)
 encodeListKnown = findEncodings(images)
 
@@ -85,6 +85,7 @@ elif selected_page == 'Taking Attendance':
         frame_placeholder.info("Wait for a few seconds while the app loads the camera...")
     if st.session_state.capturing:
         stop_button = st.button("Stop capturing", key="stop_button")
+        st.markdown("*Double click if error appears on clicking the stop button*")
         cap = cv.VideoCapture(0)
         while st.session_state.capturing:
             success, img = cap.read()
