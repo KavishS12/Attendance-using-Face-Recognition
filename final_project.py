@@ -88,36 +88,41 @@ elif selected_page == 'Taking Attendance':
         st.markdown("*Double click if error appears on clicking the stop button*")
         cap = cv.VideoCapture(0)
         while st.session_state.capturing:
-            success, img = cap.read()
-            img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-            imgSmall = cv.resize(img, (0, 0), None, 0.25, 0.25)
-            imgSmallRGB = cv.cvtColor(imgSmall, cv.COLOR_BGR2RGB)
+            try:
+                success, img = cap.read()
+                img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+                imgSmall = cv.resize(img, (0, 0), None, 0.25, 0.25)
+                imgSmallRGB = cv.cvtColor(imgSmall, cv.COLOR_BGR2RGB)
 
-            facesCurrFrame = face_recognition.face_locations(imgSmallRGB)
-            encodeCurrFrame = face_recognition.face_encodings(imgSmallRGB)
+                facesCurrFrame = face_recognition.face_locations(imgSmallRGB)
+                encodeCurrFrame = face_recognition.face_encodings(imgSmallRGB)
 
-            for encodeFace, faceloc in zip(encodeCurrFrame, facesCurrFrame):
-                matches = face_recognition.compare_faces(encodeListKnown, encodeFace, tolerance=0.5)
-                face_dist = face_recognition.face_distance(encodeListKnown, encodeFace)
-                matchIndex = np.argmin(face_dist)
+                for encodeFace, faceloc in zip(encodeCurrFrame, facesCurrFrame):
+                    matches = face_recognition.compare_faces(encodeListKnown, encodeFace, tolerance=0.5)
+                    face_dist = face_recognition.face_distance(encodeListKnown, encodeFace)
+                    matchIndex = np.argmin(face_dist)
 
-                if matches[matchIndex]:
-                    name = classNames[matchIndex].upper()
-                    y1, x2, y2, x1 = faceloc
-                    y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
-                    # Draw a box around the face
-                    cv.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=2)
-                    # Draw a label containing name below the face
-                    cv.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv.FILLED)
-                    cv.putText(img, name, (x1 + 6, y2 - 6), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                    markAttendance(name, date)
+                    if matches[matchIndex]:
+                        name = classNames[matchIndex].upper()
+                        y1, x2, y2, x1 = faceloc
+                        y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
+                        # Draw a box around the face
+                        cv.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), thickness=2)
+                        # Draw a label containing name below the face
+                        cv.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv.FILLED)
+                        cv.putText(img, name, (x1 + 6, y2 - 6), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                        markAttendance(name, date)
 
-            frame_placeholder.image(img)
-            cv.waitKey(1)
+                frame_placeholder.image(img)
+                cv.waitKey(1)
 
-            if stop_button:
-                st.session_state.capturing = False
-                frame_placeholder.success("Attendance captured.Click the \"Stop capturing\" button again to exit.")
+                if stop_button:
+                    st.session_state.capturing = False
+                    frame_placeholder.success("Attendance captured.Click the \"Stop capturing\" button again to exit.")
+                    break
+            except cv.error:
+                st.error(f"OpenCV error: Check your webcam and try again.")
+                st.session_state.capturing=False
                 break
 
         cap.release()
